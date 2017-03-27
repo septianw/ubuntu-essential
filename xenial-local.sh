@@ -7,6 +7,8 @@ VERSION=16.04
 CODENAME=xenial
 REVISION=20160422
 
+TAG=$TAG"-local"
+# SOURCES=$(pwd)"/source.list"
 set -ve
 
 docker build -t ubuntu-essential-multilayer - <<EOF
@@ -21,6 +23,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     dpkg-query -Wf '\${db:Status-Abbrev}\t\${binary:Package}\n' | \
       grep '^.i' | awk -F'\t' '{print \$2 " install"}' | dpkg --set-selections && \
     rm -r /var/cache/apt /var/lib/apt/lists
+RUN echo "deb http://172.17.0.1:3142/ubuntu xenial main restricted universe" > /etc/apt/sources.list && \
+    echo "deb http://172.17.0.1:3142/ubuntu xenial-updates main restricted universe" >> /etc/apt/sources.list && \
+    echo "deb http://security.ubuntu.com/ubuntu xenial-security main restricted universe" >> /etc/apt/sources.list
 EOF
 
 TMP_FILE="$(mktemp -t ubuntu-essential-XXXXXX).tar.gz"

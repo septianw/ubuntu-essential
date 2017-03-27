@@ -2,22 +2,18 @@
 
 # based on https://github.com/textlab/glossa/blob/master/script/build_ubuntu_essential.sh
 
-TAG=essloc
-VERSION=16.04
-CODENAME=xenial
-REVISION=20160422
+TAG=septianw/ubuntu-essential
+VERSION=12.04
+CODENAME=precise
+REVISION=20160425
 
 set -ve
 
 docker build -t ubuntu-essential-multilayer - <<EOF
 FROM ubuntu:${CODENAME}-${REVISION}
 # Make an exception for apt: it gets deselected, even though it probably shouldn't.
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    dpkg --clear-selections && echo "apt install" | dpkg --set-selections && \
-    apt-get --purge -y dselect-upgrade && \
-    apt-get purge -y --allow-remove-essential init systemd && \
-    apt-get purge -y libapparmor1 libcap2-bin libcryptsetup4 libdevmapper1.02.1 libkmod2 libseccomp2 && \
-    apt-get --purge -y autoremove && \
+RUN dpkg --clear-selections && echo "apt install" | dpkg --set-selections && \
+    SUDO_FORCE_REMOVE=yes DEBIAN_FRONTEND=noninteractive apt-get --purge -y dselect-upgrade && \
     dpkg-query -Wf '\${db:Status-Abbrev}\t\${binary:Package}\n' | \
       grep '^.i' | awk -F'\t' '{print \$2 " install"}' | dpkg --set-selections && \
     rm -r /var/cache/apt /var/lib/apt/lists
@@ -39,5 +35,4 @@ EOF
 docker rmi ubuntu-essential-nocmd
 rm -f "$TMP_FILE"
 
-docker tag ${TAG}:${VERSION} ${TAG}:${VERSION}-${REVISION}
-docker tag ${TAG}:${VERSION} ${TAG}:latest
+docker tag -f ${TAG}:${VERSION} ${TAG}:${VERSION}-${REVISION}
